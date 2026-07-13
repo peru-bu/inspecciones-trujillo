@@ -831,7 +831,7 @@
         state.centers = data.centers || [];
         state.auditors = data.auditors || [];
         renderInitialData();
-        setStatus(data.spreadsheetName || 'Listo', 'ok');
+        setStatus(data.readyMessage || 'Sistema listo', 'ok');
       } catch (error) {
         setStatus(error.message || String(error), 'error');
       }
