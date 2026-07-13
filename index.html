@@ -822,6 +822,11 @@
     async function init() {
       bindEvents();
 
+      if (!isAppsScriptRuntime()) {
+        renderStandaloneNotice();
+        return;
+      }
+
       try {
         setStatus('Cargando maestros...');
         showView('sede');
@@ -833,6 +838,25 @@
       } catch (error) {
         setStatus(error.message || String(error), 'error');
       }
+    }
+
+    function isAppsScriptRuntime() {
+      return Boolean(window.google && google.script && google.script.run);
+    }
+
+    function renderStandaloneNotice() {
+      showView('sede');
+      $('#viewSede').innerHTML = `<h2 class="screen-title">Frontend publicado</h2>
+        <p class="screen-copy">Esta es la copia publica de la interfaz. La ejecucion con datos se abre desde la app oficial.</p>
+        <div class="panel">
+          <div class="summary-grid">
+            <strong>Backend protegido</strong>
+            <div class="summary-line">El repositorio publico no contiene endpoints ni credenciales. Para realizar inspecciones usa el enlace oficial de la aplicacion.</div>
+          </div>
+        </div>`;
+      $('#headerTitle').textContent = 'Frontend';
+      $('#headerSubtitle').textContent = 'Repositorio publico';
+      setStatus('Abre la app oficial para operar.', 'ok');
     }
 
     function renderInitialData() {
@@ -1240,11 +1264,11 @@
     }
 
     function runApi(name, ...args) {
-      if (window.google && google.script && google.script.run) {
+      if (isAppsScriptRuntime()) {
         return runAppsScriptApi(name, ...args);
       }
 
-      return Promise.reject(new Error('Abre la aplicacion desde Apps Script.'));
+      return Promise.reject(new Error('Abre la app oficial para operar.'));
     }
 
     function runAppsScriptApi(name, ...args) {
