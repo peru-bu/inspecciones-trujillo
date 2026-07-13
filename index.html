@@ -744,6 +744,8 @@
   </main>
 
   <script>
+    const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbwaATbROKgQiLNeC_7-FC8RnkPIv6ssRFHaq8lgfx1GS7tNKrDD6aR5xRFkwuZAKVJA9w/exec';
+
     const state = {
       centers: [],
       auditors: [],
@@ -822,11 +824,6 @@
     async function init() {
       bindEvents();
 
-      if (!isAppsScriptRuntime()) {
-        renderStandaloneNotice();
-        return;
-      }
-
       try {
         setStatus('Cargando maestros...');
         showView('sede');
@@ -842,21 +839,6 @@
 
     function isAppsScriptRuntime() {
       return Boolean(window.google && google.script && google.script.run);
-    }
-
-    function renderStandaloneNotice() {
-      showView('sede');
-      $('#viewSede').innerHTML = `<h2 class="screen-title">Frontend publicado</h2>
-        <p class="screen-copy">Esta es la copia publica de la interfaz. La ejecucion con datos se abre desde la app oficial.</p>
-        <div class="panel">
-          <div class="summary-grid">
-            <strong>Backend protegido</strong>
-            <div class="summary-line">El repositorio publico no contiene endpoints ni credenciales. Para realizar inspecciones usa el enlace oficial de la aplicacion.</div>
-          </div>
-        </div>`;
-      $('#headerTitle').textContent = 'Frontend';
-      $('#headerSubtitle').textContent = 'Repositorio publico';
-      setStatus('Abre la app oficial para operar.', 'ok');
     }
 
     function renderInitialData() {
@@ -1268,7 +1250,7 @@
         return runAppsScriptApi(name, ...args);
       }
 
-      return Promise.reject(new Error('Abre la app oficial para operar.'));
+      return runJsonpApi(name, args);
     }
 
     function runAppsScriptApi(name, ...args) {
@@ -1277,6 +1259,48 @@
           .withSuccessHandler(resolve)
           .withFailureHandler(error => reject(new Error(error.message || error)));
         runner[name](...args);
+      });
+    }
+
+    function runJsonpApi(name, args) {
+      return new Promise((resolve, reject) => {
+        const callback = `__inspectionApi_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const timeout = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('No hubo respuesta del backend.'));
+        }, 30000);
+
+        function cleanup() {
+          window.clearTimeout(timeout);
+          delete window[callback];
+          script.remove();
+        }
+
+        window[callback] = payload => {
+          cleanup();
+
+          if (payload && payload.ok === false && payload.error) {
+            reject(new Error(payload.error));
+            return;
+          }
+
+          resolve(payload);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('No se pudo conectar con Apps Script.'));
+        };
+
+        const params = new URLSearchParams({
+          api: '1',
+          fn: name,
+          args: JSON.stringify(args),
+          callback
+        });
+        script.src = `${APPS_SCRIPT_API_URL}?${params.toString()}`;
+        document.body.appendChild(script);
       });
     }
 
