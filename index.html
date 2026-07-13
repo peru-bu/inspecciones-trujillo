@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: dark;
+      --black-1000: #030303;
+      --black-950: #070707;
+      --black-900: #0d0d0d;
+      --black-850: #151515;
+      --gold: #f5c542;
+      --gold-soft: #ffe28a;
+      --done: #22c55e;
+      --done-soft: rgba(34, 197, 94, .18);
+      --done-line: rgba(34, 197, 94, .44);
+      --pending: #ef4444;
+      --pending-soft: rgba(239, 68, 68, .18);
+      --pending-line: rgba(239, 68, 68, .44);
+      --white: #ffffff;
+      --steel-soft: rgba(244, 246, 248, .72);
+      --bg: radial-gradient(900px 500px at 10% -8%, rgba(245, 197, 66, .18), transparent 58%),
+        radial-gradient(720px 420px at 96% 2%, rgba(255, 255, 255, .07), transparent 55%),
+        linear-gradient(135deg, var(--black-1000) 0%, var(--black-950) 45%, var(--black-850) 100%);
+      --surface: linear-gradient(180deg, rgba(18, 18, 18, .94), rgba(5, 5, 5, .88));
+      --surface-strong: linear-gradient(135deg, rgba(20, 20, 20, .96), rgba(5, 5, 5, .90));
+      --surface-soft: rgba(255, 255, 255, .055);
+      --line: rgba(245, 197, 66, .20);
+      --text: var(--white);
+      --muted: var(--steel-soft);
+      --blue: var(--gold);
+      --blue-soft: rgba(245, 197, 66, .10);
+      --green: var(--gold-soft);
+      --green-soft: rgba(245, 197, 66, .14);
+      --red: var(--gold-soft);
+      --red-soft: rgba(245, 197, 66, .08);
+      --amber: var(--gold);
+      --amber-soft: rgba(245, 197, 66, .16);
+      --shadow: 0 18px 46px rgba(0, 0, 0, .46);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Roboto, Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      background: var(--surface-strong);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .05);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .back-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid rgba(245, 197, 66, .25);
+      background: rgba(245, 197, 66, .08);
+      color: var(--gold-soft);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .back-button:disabled {
+      opacity: .35;
+      cursor: default;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status {
+      min-height: 30px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(245, 197, 66, .08);
+      color: var(--muted);
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status.ok {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, .12);
+      border-color: rgba(34, 197, 94, .28);
+    }
+
+    .status.error {
+      color: #fecaca;
+      background: rgba(239, 68, 68, .12);
+      border-color: rgba(239, 68, 68, .36);
+    }
+
+    .step-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .step {
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .06);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .step.active {
+      color: var(--black-1000);
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+    }
+
+    .step.done {
+      color: var(--gold-soft);
+      background: var(--green-soft);
+    }
+
+    .app-main {
+      width: min(780px, 100%);
+      margin: 0 auto;
+      padding: 12px;
+      padding-bottom: 86px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .screen-title {
+      margin: 4px 0 12px;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .screen-copy {
+      margin: -6px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .panel,
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .04);
+    }
+
+    .panel {
+      padding: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    select,
+    input,
+    textarea {
+      width: 100%;
+      min-height: 50px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .06);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+    }
+
+    select option {
+      background: var(--black-900);
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 108px;
+      resize: vertical;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(245, 197, 66, .14);
+    }
+
+    .primary,
+    .secondary,
+    .success,
+    .warning,
+    .danger-lite {
+      width: 100%;
+      min-height: 50px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 900;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      color: var(--black-1000);
+    }
+
+    .secondary {
+      border: 1px solid rgba(245, 197, 66, .22);
+      background: rgba(255, 255, 255, .06);
+      color: var(--gold-soft);
+    }
+
+    .success {
+      background: linear-gradient(135deg, #16a34a, #86efac);
+      color: var(--black-1000);
+    }
+
+    .warning {
+      background: linear-gradient(135deg, rgba(239, 68, 68, .28), rgba(255, 255, 255, .07));
+      color: #fecaca;
+      border: 1px solid rgba(239, 68, 68, .38);
+    }
+
+    .danger-lite {
+      border: 1px solid rgba(245, 197, 66, .18);
+      background: rgba(255, 255, 255, .045);
+      color: var(--muted);
+    }
+
+    .primary:disabled,
+    .secondary:disabled,
+    .success:disabled,
+    .warning:disabled,
+    .danger-lite:disabled {
+      opacity: .48;
+      cursor: default;
+    }
+
+    .list,
+    .choice-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      color: inherit;
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: rgba(245, 197, 66, .56);
+    }
+
+    .card.pending-card::before {
+      background: var(--pending);
+    }
+
+    .card.done-card::before {
+      background: var(--done);
+    }
+
+    .card:active {
+      transform: scale(.992);
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-title {
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .card-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat {
+      min-height: 58px;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: rgba(255, 255, 255, .055);
+      text-align: center;
+    }
+
+    .stat strong {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 26px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .badge.pending {
+      color: #fecaca;
+      background: var(--pending-soft);
+      border: 1px solid var(--pending-line);
+    }
+
+    .badge.done {
+      color: #bbf7d0;
+      background: var(--done-soft);
+      border: 1px solid var(--done-line);
+    }
+
+    .badge.blocked {
+      color: var(--muted);
+      background: rgba(255, 255, 255, .045);
+    }
+
+    .item-actions {
+      margin-top: 4px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .summary {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid rgba(245, 197, 66, .25);
+      border-radius: 8px;
+      background: var(--blue-soft);
+      color: var(--muted);
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .summary-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .summary-line {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .summary-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .mini-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 9px;
+      border: 1px solid rgba(255, 255, 255, .10);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .05);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .summary strong {
+      display: block;
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .stat.pending strong,
+    .stat.pending span {
+      color: #fecaca;
+    }
+
+    .stat.done strong,
+    .stat.done span {
+      color: #bbf7d0;
+    }
+
+    .choice-button {
+      display: grid;
+      gap: 5px;
+      min-height: 82px;
+      padding: 14px;
+      border-radius: 8px;
+      text-align: left;
+      color: var(--text);
+    }
+
+    .choice-button.success {
+      color: var(--black-1000);
+    }
+
+    .choice-button.warning {
+      color: var(--gold-soft);
+    }
+
+    .choice-step {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice-step.hidden {
+      display: none;
+    }
+
+    .choice-button strong {
+      font-size: 16px;
+    }
+
+    .choice-button span {
+      font-size: 13px;
+      line-height: 1.35;
+      opacity: .95;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .question-row {
+      position: relative;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .question-row::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: rgba(255, 255, 255, .10);
+    }
+
+    .question-row.answer-yes {
+      border-color: var(--done-line);
+    }
+
+    .question-row.answer-yes::before {
+      background: var(--done);
+    }
+
+    .question-row.answer-no {
+      border-color: var(--pending-line);
+    }
+
+    .question-row.answer-no::before {
+      background: var(--pending);
+    }
+
+    .question-text {
+      margin-bottom: 10px;
+      padding-left: 4px;
+      font-size: 15px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .segmented button {
+      background: rgba(255, 255, 255, .04);
+      color: var(--muted);
+      border-right: 1px solid var(--line);
+      font-weight: 900;
+    }
+
+    .segmented button.yes {
+      color: #bbf7d0;
+    }
+
+    .segmented button.no {
+      color: #fecaca;
+    }
+
+    .segmented button:last-child {
+      border-right: 0;
+    }
+
+    .segmented button.yes.active {
+      color: #052e16;
+      background: linear-gradient(135deg, #22c55e, #bbf7d0);
+    }
+
+    .segmented button.no.active {
+      color: #450a0a;
+      background: linear-gradient(135deg, #ef4444, #fecaca);
+    }
+
+    .sticky-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 12;
+      display: grid;
+      gap: 8px;
+      margin: 14px -12px -12px;
+      padding: 10px 12px;
+      background: rgba(3, 3, 3, .92);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+    }
+
+    .empty {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .04);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    @media (min-width: 720px) {
+      .app-main {
+        padding: 18px;
+      }
+
+      .list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .choice-grid,
+      .sticky-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="topbar">
+      <button id="backButton" class="back-button" type="button" aria-label="Volver">&lsaquo;</button>
+      <div>
+        <h1 id="headerTitle">Inspecciones</h1>
+        <div id="headerSubtitle" class="subtitle">Selecciona una sede</div>
+      </div>
+    </div>
+    <div id="status" class="status">Cargando...</div>
+    <div class="step-bar" aria-label="Avance">
+      <div id="stepSede" class="step">Sede</div>
+      <div id="stepEquipo" class="step">Equipo</div>
+      <div id="stepItem" class="step">Item</div>
+      <div id="stepAuditoria" class="step">Auditar</div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section id="viewSede" class="view">
+      <h2 class="screen-title">Selecciona tu sede</h2>
+      <p class="screen-copy">Primero elige la agencia o sede donde haras la inspeccion.</p>
+      <div class="panel">
+        <div class="field">
+          <label for="centroSelect">Sede</label>
+          <select id="centroSelect"></select>
+        </div>
+        <button id="continueCenter" class="primary" type="button">Ver equipos</button>
+      </div>
+    </section>
+
+    <section id="viewTipos" class="view">
+      <h2 class="screen-title">Equipos de la sede</h2>
+      <p class="screen-copy">Cada tarjeta resume cuantos items contiene y cuantos faltan inspeccionar este mes.</p>
+      <div id="typeList" class="list"></div>
+    </section>
+
+    <section id="viewItems" class="view">
+      <h2 id="itemsTitle" class="screen-title">Contenido</h2>
+      <p id="itemsCopy" class="screen-copy">Selecciona el item especifico que vas a auditar.</p>
+      <div class="panel" style="margin-bottom: 12px;">
+        <div class="field" style="margin-bottom: 0;">
+          <label for="itemSearch">Buscar item</label>
+          <input id="itemSearch" autocomplete="off" placeholder="Codigo o ubicacion">
+        </div>
+      </div>
+      <div id="itemList" class="list"></div>
+    </section>
+
+    <section id="viewAudit" class="view">
+      <h2 class="screen-title">Auditar item</h2>
+      <div id="auditSummary" class="summary"></div>
+      <div class="panel">
+        <div class="field">
+          <label for="auditorInput">Auditor</label>
+          <input id="auditorInput" list="auditoresList" autocomplete="off" placeholder="Selecciona o escribe tu nombre">
+          <datalist id="auditoresList"></datalist>
+        </div>
+        <button id="confirmAuditor" class="primary" type="button">Continuar</button>
+        <div id="auditChoices" class="choice-step hidden">
+          <div id="auditAuditorBadge" class="summary-tags"></div>
+          <div class="choice-grid">
+            <button id="auditNoObservation" class="choice-button success" type="button">
+              <strong>Sin observacion</strong>
+              <span>Guarda todas las respuestas como SI y sin observaciones.</span>
+            </button>
+            <button id="auditWithObservation" class="choice-button warning" type="button">
+              <strong>Con observacion</strong>
+              <span>Abre las preguntas para marcar al menos un NO y escribir detalle.</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="viewQuestions" class="view">
+      <h2 class="screen-title">Inspeccion con observacion</h2>
+      <div id="questionSummary" class="summary"></div>
+      <div id="questionList" class="question-list"></div>
+      <div class="panel" style="margin-top: 12px;">
+        <div class="field" style="margin-bottom: 0;">
+          <label for="observations">Observacion</label>
+          <textarea id="observations" placeholder="Describe que se encontro y donde esta el problema"></textarea>
+        </div>
+        <div class="sticky-actions">
+          <button id="markAllYes" class="secondary" type="button">Todo SI</button>
+          <button id="saveObservationAudit" class="primary" type="button">Guardar observacion</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbwaATbROKgQiLNeC_7-FC8RnkPIv6ssRFHaq8lgfx1GS7tNKrDD6aR5xRFkwuZAKVJA9w/exec';
+
+    const state = {
+      centers: [],
+      auditors: [],
+      tipos: [],
+      items: [],
+      questions: [],
+      answers: {},
+      currentView: 'sede',
+      centroId: '',
+      selectedType: null,
+      selectedItem: null,
+      selectedStatus: null,
+      auditor: '',
+      auditorConfirmed: false
+    };
+
+    const viewConfig = {
+      sede: {
+        id: 'viewSede',
+        title: 'Inspecciones',
+        subtitle: 'Selecciona una sede',
+        back: null
+      },
+      tipos: {
+        id: 'viewTipos',
+        title: 'Equipos',
+        subtitle: 'Resumen de la sede',
+        back: 'sede'
+      },
+      items: {
+        id: 'viewItems',
+        title: 'Contenido',
+        subtitle: 'Items del equipo',
+        back: 'tipos'
+      },
+      audit: {
+        id: 'viewAudit',
+        title: 'Auditar',
+        subtitle: 'Confirma el auditor',
+        back: 'items'
+      },
+      questions: {
+        id: 'viewQuestions',
+        title: 'Con observacion',
+        subtitle: 'Marca el hallazgo',
+        back: 'audit'
+      }
+    };
+
+    const $ = selector => document.querySelector(selector);
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function bindEvents() {
+      $('#backButton').addEventListener('click', goBack);
+      $('#continueCenter').addEventListener('click', continueFromCenter);
+      $('#itemSearch').addEventListener('input', renderItems);
+      $('#auditorInput').addEventListener('input', () => {
+        state.auditor = $('#auditorInput').value.trim();
+        state.auditorConfirmed = false;
+        hideAuditChoices();
+      });
+      $('#auditorInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          confirmAuditor();
+        }
+      });
+      $('#confirmAuditor').addEventListener('click', confirmAuditor);
+      $('#auditNoObservation').addEventListener('click', saveNoObservation);
+      $('#auditWithObservation').addEventListener('click', startObservationAudit);
+      $('#markAllYes').addEventListener('click', markAllYes);
+      $('#saveObservationAudit').addEventListener('click', saveObservationAudit);
+    }
+
+    async function init() {
+      bindEvents();
+
+      try {
+        setStatus('Cargando maestros...');
+        showView('sede');
+        const data = await runApi('getInitialData');
+        state.centers = data.centers || [];
+        state.auditors = data.auditors || [];
+        renderInitialData();
+        setStatus(data.spreadsheetName || 'Listo', 'ok');
+      } catch (error) {
+        setStatus(error.message || String(error), 'error');
+      }
+    }
+
+    function renderInitialData() {
+      $('#centroSelect').innerHTML = '<option value="">Seleccionar sede</option>' +
+        state.centers.map(item => `<option value="${escapeHtml(item.centro_id)}">${escapeHtml(item.centro)}</option>`).join('');
+      $('#auditoresList').innerHTML = state.auditors
+        .map(item => `<option value="${escapeHtml(item.auditor)}"></option>`)
+        .join('');
+
+      if (state.centers.length === 1) {
+        $('#centroSelect').value = state.centers[0].centro_id;
+      }
+    }
+
+    async function continueFromCenter() {
+      const centroId = $('#centroSelect').value;
+      if (!centroId) {
+        setStatus('Selecciona una sede.', 'error');
+        return;
+      }
+
+      state.centroId = centroId;
+      state.selectedType = null;
+      state.selectedItem = null;
+      state.selectedStatus = null;
+      state.items = [];
+      state.questions = [];
+      state.answers = {};
+
+      try {
+        setStatus('Cargando equipos...');
+        showView('tipos');
+        const data = await runApi('getTiposPorCentro', centroId);
+        state.tipos = data.tipos || [];
+        renderTypes();
+        setStatus(`${state.tipos.length} equipos disponibles`, 'ok');
+      } catch (error) {
+        setStatus(error.message || String(error), 'error');
+      }
+    }
+
+    function renderTypes() {
+      $('#typeList').innerHTML = state.tipos.map(item => {
+        const typeCardClass = item.pendingThisMonth > 0 ? 'pending-card' : 'done-card';
+        return `<button class="card ${typeCardClass}" type="button" data-id="${escapeHtml(item.inspeccion_id)}">
+          <span class="card-title-row">
+            <span class="card-title">${escapeHtml(item.inspeccion)}</span>
+            <span class="badge ${item.pendingThisMonth > 0 ? 'pending' : 'done'}">${escapeHtml(item.pendingThisMonth)} pend.</span>
+          </span>
+          <span class="card-meta">${item.lastInspectionDate ? `Ultima inspeccion: ${escapeHtml(item.lastInspectionDate)}` : 'Sin inspecciones registradas'}</span>
+          <span class="stat-grid">
+            <span class="stat"><strong>${escapeHtml(item.total)}</strong><span>Total</span></span>
+            <span class="stat pending"><strong>${escapeHtml(item.pendingThisMonth)}</strong><span>Pendientes</span></span>
+            <span class="stat done"><strong>${escapeHtml(item.doneThisMonth)}</strong><span>Hechos</span></span>
+          </span>
+        </button>`;
+      }).join('') || '<div class="empty">No hay equipos para esta sede.</div>';
+
+      document.querySelectorAll('#typeList .card').forEach(card => {
+        card.addEventListener('click', () => loadItems(card.dataset.id));
+      });
+    }
+
+    async function loadItems(inspeccionId, options = {}) {
+      const selectedType = state.tipos.find(item => item.inspeccion_id === inspeccionId);
+      if (!selectedType) return;
+
+      state.selectedType = selectedType;
+      state.selectedItem = null;
+      state.selectedStatus = null;
+      state.questions = [];
+      state.answers = {};
+      $('#itemSearch').value = '';
+      $('#itemsTitle').textContent = selectedType.inspeccion;
+      $('#itemsCopy').textContent = `${selectedType.pendingThisMonth} pendientes de ${selectedType.total} este mes.`;
+
+      try {
+        if (!options.silent) setStatus('Cargando contenido...');
+        showView('items');
+        const data = await runApi('getEquiposPorTipo', state.centroId, inspeccionId);
+        state.items = data.equipos || [];
+        renderItems();
+        if (!options.silent) setStatus(`${state.items.length} items encontrados`, 'ok');
+      } catch (error) {
+        setStatus(error.message || String(error), 'error');
+      }
+    }
+
+    function renderItems() {
+      const term = normalize($('#itemSearch').value);
+      const filtered = state.items.filter(item => {
+        const text = `${item.etiqueta || ''} ${item.codigo || ''} ${item.ubicacion || ''}`;
+        return normalize(text).includes(term);
+      });
+
+      $('#itemList').innerHTML = filtered.map(item => {
+        const done = Boolean(item.doneThisMonth);
+        const badgeClass = done ? 'done' : 'pending';
+        const badgeText = done ? 'Hecho este mes' : 'Pendiente';
+        const meta = done
+          ? `Realizado: ${escapeHtml(item.doneThisMonthDate || item.lastInspectionDate || '-')}`
+          : (item.lastInspectionDate ? `Ultima inspeccion: ${escapeHtml(item.lastInspectionDate)}` : 'Sin inspecciones registradas');
+
+        return `<div class="card ${done ? 'done-card' : 'pending-card'}">
+          <span class="card-title-row">
+            <span class="card-title">${escapeHtml(item.etiqueta || item.codigo || item.ubicacion || 'Item')}</span>
+            <span class="badge ${badgeClass}">${badgeText}</span>
+          </span>
+          <span class="card-meta">${meta}</span>
+          <span class="card-meta">Codigo: ${escapeHtml(item.codigo || '-')}<br>Ubicacion: ${escapeHtml(item.ubicacion || '-')}</span>
+          <span class="item-actions">
+            <button class="primary" type="button" data-id="${escapeHtml(item.equipo_id)}">Auditar</button>
+          </span>
+        </div>`;
+      }).join('') || '<div class="empty">No hay items con ese filtro.</div>';
+
+      document.querySelectorAll('#itemList button[data-id]').forEach(button => {
+        button.addEventListener('click', () => openAudit(button.dataset.id));
+      });
+    }
+
+    function openAudit(equipoId) {
+      const item = state.items.find(record => record.equipo_id === equipoId);
+      if (!item) return;
+
+      state.selectedItem = item;
+      state.selectedStatus = {
+        doneThisMonth: Boolean(item.doneThisMonth),
+        doneThisMonthDate: item.doneThisMonthDate || '',
+        lastInspectionDate: item.lastInspectionDate || '',
+        lastAuditor: item.lastAuditor || ''
+      };
+      state.questions = [];
+      state.answers = {};
+      state.auditorConfirmed = false;
+      $('#observations').value = '';
+
+      renderAuditSummary();
+      hideAuditChoices();
+      showView('audit');
+      setAuditButtonsDisabled(false);
+      setStatus('Selecciona el auditor para continuar.', 'ok');
+    }
+
+    function renderAuditSummary() {
+      const item = state.selectedItem || {};
+      const status = state.selectedStatus || {};
+      const lastText = status.lastInspectionDate
+        ? `Ultima inspeccion: ${escapeHtml(status.lastInspectionDate)}`
+        : 'Sin inspecciones registradas';
+      const statusBadge = status.doneThisMonth
+        ? '<span class="badge done">Hecho este mes</span>'
+        : '<span class="badge pending">Pendiente este mes</span>';
+      const monthText = status.doneThisMonth
+        ? `Realizado este mes: ${escapeHtml(status.doneThisMonthDate || status.lastInspectionDate || '-')}`
+        : 'Pendiente este mes';
+
+      $('#auditSummary').innerHTML = `<div class="summary-grid">
+        <strong>${escapeHtml(item.etiqueta || item.codigo || item.ubicacion || 'Item')}</strong>
+        <div class="summary-line">${escapeHtml(item.tipo_equipo || '')}</div>
+        <div class="summary-tags">
+          ${statusBadge}
+          <span class="mini-chip">${lastText}</span>
+          <span class="mini-chip">${monthText}</span>
+        </div>
+        <div class="summary-line">Codigo: ${escapeHtml(item.codigo || '-')}<br>Ubicacion: ${escapeHtml(item.ubicacion || '-')}</div>
+      </div>`;
+    }
+
+    async function saveNoObservation() {
+      if (!state.selectedItem) return;
+      const auditor = getConfirmedAuditorOrFocus();
+      if (!auditor) return;
+
+      try {
+        setAuditButtonsDisabled(true);
+        setStatus('Guardando sin observacion...');
+        const result = await runApi('guardarInspeccionSinObservacion', {
+          equipo_id: state.selectedItem.equipo_id,
+          auditor
+        });
+        setStatus(result.message || 'Guardado', 'ok');
+        await refreshAfterSave();
+      } catch (error) {
+        setStatus(error.message || String(error), 'error');
+      } finally {
+        setAuditButtonsDisabled(false);
+      }
+    }
+
+    async function startObservationAudit() {
+      if (!state.selectedItem) return;
+      const auditor = getConfirmedAuditorOrFocus();
+      if (!auditor) return;
+
+      try {
+        setAuditButtonsDisabled(true);
+        setStatus('Cargando preguntas...');
+        const data = await runApi('getFormularioInspeccion', state.selectedItem.equipo_id);
+        state.selectedStatus = data.status || state.selectedStatus;
+        renderAuditSummary();
+
+        state.questions = data.preguntas || [];
+        state.answers = {};
+        state.questions.forEach(question => {
+          state.answers[question.pregunta_id] = 'SI';
+        });
+        $('#observations').value = '';
+        renderQuestions();
+        showView('questions');
+        setStatus('Marca al menos una respuesta en NO.', 'ok');
+      } catch (error) {
+        setStatus(error.message || String(error), 'error');
+      } finally {
+        setAuditButtonsDisabled(false);
+      }
+    }
+
+    function renderQuestions() {
+      const item = state.selectedItem || {};
+      $('#questionSummary').innerHTML = `<div class="summary-grid">
+        <strong>${escapeHtml(item.etiqueta || item.codigo || item.ubicacion || 'Item')}</strong>
+        <div class="summary-tags">
+          <span class="mini-chip">${escapeHtml(item.tipo_equipo || '-')}</span>
+          <span class="mini-chip">Auditor: ${escapeHtml(state.auditor || '-')}</span>
+        </div>
+        <div class="summary-line">Marca NO en la pregunta observada y escribe el detalle.</div>
+      </div>`;
+
+      $('#questionList').innerHTML = state.questions.map(question => {
+        const answer = state.answers[question.pregunta_id] || 'SI';
+        return `<div class="question-row ${answer === 'NO' ? 'answer-no' : 'answer-yes'}">
+          <div class="question-text">${escapeHtml(question.orden)}. ${escapeHtml(question.pregunta)}</div>
+          <div class="segmented" data-id="${escapeHtml(question.pregunta_id)}">
+            <button class="yes ${answer === 'SI' ? 'active' : ''}" type="button" data-value="SI">SI</button>
+            <button class="no ${answer === 'NO' ? 'active' : ''}" type="button" data-value="NO">NO</button>
+          </div>
+        </div>`;
+      }).join('') || '<div class="empty">No hay preguntas configuradas para este equipo.</div>';
+
+      document.querySelectorAll('.segmented button').forEach(button => {
+        button.addEventListener('click', () => {
+          const group = button.closest('.segmented');
+          const row = button.closest('.question-row');
+          state.answers[group.dataset.id] = button.dataset.value;
+          group.querySelectorAll('button').forEach(item => item.classList.remove('active'));
+          button.classList.add('active');
+          row.classList.toggle('answer-yes', button.dataset.value === 'SI');
+          row.classList.toggle('answer-no', button.dataset.value === 'NO');
+        });
+      });
+    }
+
+    function markAllYes() {
+      state.questions.forEach(question => {
+        state.answers[question.pregunta_id] = 'SI';
+      });
+      renderQuestions();
+      setStatus('Todas las respuestas quedaron en SI.', 'ok');
+    }
+
+    async function saveObservationAudit() {
+      if (!state.selectedItem) return;
+      const auditor = getConfirmedAuditorOrFocus();
+      if (!auditor) return;
+
+      const hasNo = state.questions.some(question => state.answers[question.pregunta_id] === 'NO');
+      const observations = $('#observations').value.trim();
+
+      if (!hasNo) {
+        setStatus('Marca al menos una respuesta en NO.', 'error');
+        return;
+      }
+
+      if (!observations) {
+        setStatus('Escribe la observacion.', 'error');
+        $('#observations').focus();
+        return;
+      }
+
+      try {
+        $('#saveObservationAudit').disabled = true;
+        setStatus('Guardando con observacion...');
+        const result = await runApi('guardarInspeccion', {
+          equipo_id: state.selectedItem.equipo_id,
+          auditor,
+          modo: 'CON_OBSERVACION',
+          observaciones: observations,
+          respuestas: state.questions.map(question => ({
+            pregunta_id: question.pregunta_id,
+            respuesta: state.answers[question.pregunta_id] || 'SI'
+          }))
+        });
+        setStatus(result.message || 'Guardado', 'ok');
+        await refreshAfterSave();
+      } catch (error) {
+        setStatus(error.message || String(error), 'error');
+      } finally {
+        $('#saveObservationAudit').disabled = false;
+      }
+    }
+
+    async function refreshAfterSave() {
+      const typeId = state.selectedType ? state.selectedType.inspeccion_id : '';
+      state.selectedItem = null;
+      state.selectedStatus = null;
+      state.questions = [];
+      state.answers = {};
+
+      const tiposData = await runApi('getTiposPorCentro', state.centroId);
+      state.tipos = tiposData.tipos || [];
+      state.selectedType = state.tipos.find(item => item.inspeccion_id === typeId) || state.selectedType;
+
+      if (typeId) {
+        const itemsData = await runApi('getEquiposPorTipo', state.centroId, typeId);
+        state.items = itemsData.equipos || [];
+        $('#itemsCopy').textContent = state.selectedType
+          ? `${state.selectedType.pendingThisMonth} pendientes de ${state.selectedType.total} este mes.`
+          : 'Selecciona el item especifico que vas a auditar.';
+        renderItems();
+      }
+
+      showView('items');
+    }
+
+    function getAuditorOrFocus() {
+      const auditor = $('#auditorInput').value.trim();
+      if (!auditor) {
+        setStatus('Selecciona o escribe el auditor.', 'error');
+        $('#auditorInput').focus();
+        return '';
+      }
+
+      state.auditor = auditor;
+      return auditor;
+    }
+
+    function getConfirmedAuditorOrFocus() {
+      const auditor = getAuditorOrFocus();
+      if (!auditor) return '';
+
+      if (!state.auditorConfirmed) {
+        state.auditorConfirmed = true;
+        showAuditChoices();
+      }
+
+      return auditor;
+    }
+
+    function confirmAuditor() {
+      const auditor = getAuditorOrFocus();
+      if (!auditor) return;
+
+      state.auditorConfirmed = true;
+      showAuditChoices();
+      setStatus('Auditor confirmado. Elige el tipo de auditoria.', 'ok');
+    }
+
+    function showAuditChoices() {
+      $('#auditAuditorBadge').innerHTML = `<span class="mini-chip">Auditor: ${escapeHtml(state.auditor || '-')}</span>`;
+      $('#auditChoices').classList.remove('hidden');
+      setAuditButtonsDisabled(false);
+    }
+
+    function hideAuditChoices() {
+      $('#auditAuditorBadge').innerHTML = '';
+      $('#auditChoices').classList.add('hidden');
+    }
+
+    function setAuditButtonsDisabled(disabled) {
+      $('#confirmAuditor').disabled = disabled;
+      $('#auditNoObservation').disabled = disabled;
+      $('#auditWithObservation').disabled = disabled;
+    }
+
+    function showView(name) {
+      state.currentView = name;
+      Object.keys(viewConfig).forEach(key => {
+        $('#' + viewConfig[key].id).classList.toggle('active', key === name);
+      });
+
+      $('#headerTitle').textContent = viewConfig[name].title;
+      $('#headerSubtitle').textContent = viewConfig[name].subtitle;
+      $('#backButton').disabled = !viewConfig[name].back;
+      updateSteps();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goBack() {
+      const target = viewConfig[state.currentView].back;
+      if (!target) return;
+      showView(target);
+    }
+
+    function updateSteps() {
+      setStep('stepSede', state.centroId ? 'done' : 'active');
+      setStep('stepEquipo', state.selectedType ? 'done' : state.centroId ? 'active' : '');
+      setStep('stepItem', state.selectedItem ? 'done' : state.selectedType ? 'active' : '');
+      setStep('stepAuditoria', ['audit', 'questions'].includes(state.currentView) ? 'active' : '');
+    }
+
+    function setStep(id, stateName) {
+      const element = $('#' + id);
+      element.className = `step${stateName ? ` ${stateName}` : ''}`;
+    }
+
+    function runApi(name, ...args) {
+      if (window.google && google.script && google.script.run) {
+        return runAppsScriptApi(name, ...args);
+      }
+
+      return runJsonpApi(name, args);
+    }
+
+    function runAppsScriptApi(name, ...args) {
+      return new Promise((resolve, reject) => {
+        const runner = google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(error => reject(new Error(error.message || error)));
+        runner[name](...args);
+      });
+    }
+
+    function runJsonpApi(name, args) {
+      return new Promise((resolve, reject) => {
+        const callback = `__inspectionApi_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement('script');
+        const timeout = window.setTimeout(() => {
+          cleanup();
+          reject(new Error('No hubo respuesta del backend.'));
+        }, 30000);
+
+        function cleanup() {
+          window.clearTimeout(timeout);
+          delete window[callback];
+          script.remove();
+        }
+
+        window[callback] = payload => {
+          cleanup();
+
+          if (payload && payload.ok === false && payload.error) {
+            reject(new Error(payload.error));
+            return;
+          }
+
+          resolve(payload);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('No se pudo conectar con Apps Script.'));
+        };
+
+        const params = new URLSearchParams({
+          api: '1',
+          fn: name,
+          args: JSON.stringify(args),
+          callback
+        });
+        script.src = `${APPS_SCRIPT_API_URL}?${params.toString()}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    function setStatus(message, type) {
+      const status = $('#status');
+      status.textContent = message;
+      status.className = `status${type ? ` ${type}` : ''}`;
+    }
+
+    function normalize(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
