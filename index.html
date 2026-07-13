@@ -706,8 +706,7 @@
       <div class="panel">
         <div class="field">
           <label for="auditorInput">Auditor</label>
-          <input id="auditorInput" list="auditoresList" autocomplete="off" placeholder="Selecciona o escribe tu nombre">
-          <datalist id="auditoresList"></datalist>
+          <select id="auditorInput"></select>
         </div>
         <button id="confirmAuditor" class="primary" type="button">Continuar</button>
         <div id="auditChoices" class="choice-step hidden">
@@ -758,6 +757,7 @@
       selectedType: null,
       selectedItem: null,
       selectedStatus: null,
+      auditorId: '',
       auditor: '',
       auditorConfirmed: false
     };
@@ -803,16 +803,13 @@
       $('#backButton').addEventListener('click', goBack);
       $('#continueCenter').addEventListener('click', continueFromCenter);
       $('#itemSearch').addEventListener('input', renderItems);
-      $('#auditorInput').addEventListener('input', () => {
-        state.auditor = $('#auditorInput').value.trim();
+      $('#auditorInput').addEventListener('change', () => {
+        const auditor = getSelectedAuditor();
+        state.auditorId = auditor ? auditor.auditor_id : '';
+        state.auditor = auditor ? auditor.auditor : '';
         state.auditorConfirmed = false;
         hideAuditChoices();
-      });
-      $('#auditorInput').addEventListener('keydown', event => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          confirmAuditor();
-        }
+        setAuditButtonsDisabled(false);
       });
       $('#confirmAuditor').addEventListener('click', confirmAuditor);
       $('#auditNoObservation').addEventListener('click', saveNoObservation);
@@ -844,9 +841,11 @@
     function renderInitialData() {
       $('#centroSelect').innerHTML = '<option value="">Seleccionar sede</option>' +
         state.centers.map(item => `<option value="${escapeHtml(item.centro_id)}">${escapeHtml(item.centro)}</option>`).join('');
-      $('#auditoresList').innerHTML = state.auditors
-        .map(item => `<option value="${escapeHtml(item.auditor)}"></option>`)
-        .join('');
+      $('#auditorInput').innerHTML = '<option value="">Seleccionar auditor</option>' +
+        state.auditors
+          .map(item => `<option value="${escapeHtml(item.auditor_id)}">${escapeHtml(item.auditor)}</option>`)
+          .join('');
+      setAuditButtonsDisabled(false);
 
       if (state.centers.length === 1) {
         $('#centroSelect').value = state.centers[0].centro_id;
@@ -973,7 +972,10 @@
       };
       state.questions = [];
       state.answers = {};
+      state.auditorId = '';
+      state.auditor = '';
       state.auditorConfirmed = false;
+      $('#auditorInput').value = '';
       $('#observations').value = '';
 
       renderAuditSummary();
@@ -1018,7 +1020,8 @@
         setStatus('Guardando sin observacion...');
         const result = await runApi('guardarInspeccionSinObservacion', {
           equipo_id: state.selectedItem.equipo_id,
-          auditor
+          auditor_id: auditor.auditor_id,
+          auditor: auditor.auditor
         });
         setStatus(result.message || 'Guardado', 'ok');
         await refreshAfterSave();
@@ -1124,7 +1127,8 @@
         setStatus('Guardando con observacion...');
         const result = await runApi('guardarInspeccion', {
           equipo_id: state.selectedItem.equipo_id,
-          auditor,
+          auditor_id: auditor.auditor_id,
+          auditor: auditor.auditor,
           modo: 'CON_OBSERVACION',
           observaciones: observations,
           respuestas: state.questions.map(question => ({
@@ -1165,20 +1169,21 @@
     }
 
     function getAuditorOrFocus() {
-      const auditor = $('#auditorInput').value.trim();
+      const auditor = getSelectedAuditor();
       if (!auditor) {
-        setStatus('Selecciona o escribe el auditor.', 'error');
+        setStatus('Selecciona un auditor del desplegable.', 'error');
         $('#auditorInput').focus();
-        return '';
+        return null;
       }
 
-      state.auditor = auditor;
+      state.auditorId = auditor.auditor_id;
+      state.auditor = auditor.auditor;
       return auditor;
     }
 
     function getConfirmedAuditorOrFocus() {
       const auditor = getAuditorOrFocus();
-      if (!auditor) return '';
+      if (!auditor) return null;
 
       if (!state.auditorConfirmed) {
         state.auditorConfirmed = true;
@@ -1209,9 +1214,16 @@
     }
 
     function setAuditButtonsDisabled(disabled) {
-      $('#confirmAuditor').disabled = disabled;
-      $('#auditNoObservation').disabled = disabled;
-      $('#auditWithObservation').disabled = disabled;
+      const hasAuditor = Boolean($('#auditorInput').value);
+      const canChooseAuditMode = !disabled && hasAuditor && state.auditorConfirmed;
+      $('#confirmAuditor').disabled = disabled || !hasAuditor;
+      $('#auditNoObservation').disabled = !canChooseAuditMode;
+      $('#auditWithObservation').disabled = !canChooseAuditMode;
+    }
+
+    function getSelectedAuditor() {
+      const auditorId = $('#auditorInput').value;
+      return state.auditors.find(item => item.auditor_id === auditorId) || null;
     }
 
     function showView(name) {
