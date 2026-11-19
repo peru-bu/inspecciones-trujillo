@@ -404,6 +404,35 @@
       gap: 8px;
     }
 
+    .card-title-group {
+      display: flex;
+      flex: 1 1 0;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .equipment-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid #f1dfb4;
+      border-radius: 13px;
+      background: #fff5dc;
+      color: #965418;
+    }
+
+    .equipment-icon svg {
+      display: block;
+      width: 25px;
+      height: 25px;
+    }
+
+    .card-title-group .card-title { flex: 1; }
+
     .card-title {
       min-width: 0;
       font-size: 16px;
@@ -1007,12 +1036,58 @@
       }
     }
 
+    const EQUIPMENT_ICONS = {
+      extinguisher: '<path d="M9 9h6v11H9zM10 6h4v3M12 3v3M12 4h5M15 7h3v7"/><path d="M9 13h6"/>',
+      firstAid: '<rect x="3" y="7" width="18" height="14" rx="3"/><path d="M8 7V4h8v3M12 11v6M9 14h6"/>',
+      smokeDetector: '<ellipse cx="12" cy="9" rx="8" ry="4"/><path d="M4 9v3c0 2 3.6 4 8 4s8-2 8-4V9M9 20l1-1M14 19l1 1M10 9h4"/>',
+      alarm: '<path d="M8 17h8l-1.5-2V9a2.5 2.5 0 0 0-5 0v6L8 17ZM11 20h2M4 8a8 8 0 0 1 2-4M20 8a8 8 0 0 0-2-4"/><path d="M11 4h2"/>',
+      emergencyLight: '<rect x="7" y="8" width="10" height="11" rx="2"/><circle cx="5" cy="6" r="3"/><circle cx="19" cy="6" r="3"/><path d="m13 11-3 3h4l-3 3"/>',
+      fireCabinet: '<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="11" r="4"/><path d="M12 7v4h4M12 15v3h5M6.5 6h1"/>',
+      ladder: '<path d="m7 3-3 18M17 3l3 18M7 6h10M6 10h12M5.5 14h13M5 18h14"/>',
+      motorcycle: '<circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="m5 17 5-8h5l4 8M7 9h4M14 5h3l2 5M10 9l3 8h6M5 17h8"/>',
+      earth: '<circle cx="12" cy="12" r="9"/><path d="M12 5v8M7 13h10M9 16h6M11 19h2"/>',
+      electrical: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="m13 6-5 7h5l-2 5 6-8h-5l1-4ZM7 6h.01"/>',
+      rack: '<path d="M4 3v18M20 3v18M4 10h16M4 18h16"/><rect x="7" y="4" width="4" height="6" rx=".5"/><rect x="13" y="5" width="4" height="5" rx=".5"/><rect x="8" y="13" width="8" height="5" rx=".5"/>',
+      truck: '<path d="M3 6h11v11H3zM14 10h4l3 4v3h-7M17 10v4h4"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+      barrier: '<path d="M5 7v14M19 7v14M3 21h4M17 21h4"/><rect x="3" y="7" width="18" height="7" rx="1"/><path d="m5 14 5-7M11 14l5-7M17 14l3-4"/>',
+      lifting: '<path d="M5 3v17h15M8 20V9M8 12h10v6H8M13 12v6M3 20h7"/><path d="m11 6 3-3 3 3M14 3v6"/>',
+      emergency: '<path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Z"/><path d="M12 8v8M8 12h8"/>',
+      equipment: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>'
+    };
+
+    function equipmentIconName(value) {
+      const name = normalize(value).replace(/[_-]/g, ' ');
+      if (/extintor/.test(name)) return 'extinguisher';
+      if (/botiquin/.test(name)) return 'firstAid';
+      if (/detector|humo/.test(name)) return 'smokeDetector';
+      if (/alarma/.test(name)) return 'alarm';
+      if (/luces|luz.*emergencia/.test(name)) return 'emergencyLight';
+      if (/gabinete/.test(name)) return 'fireCabinet';
+      if (/escalera/.test(name)) return 'ladder';
+      if (/moto/.test(name)) return 'motorcycle';
+      if (/pozo|tierra/.test(name)) return 'earth';
+      if (/tablero|electrico/.test(name)) return 'electrical';
+      if (/rack|estanteria/.test(name)) return 'rack';
+      if (/flota/.test(name)) return 'truck';
+      if (/control|baranda/.test(name)) return 'barrier';
+      if (/elevacion|carrito|stocka|trabarueda/.test(name)) return 'lifting';
+      if (/emergencia|lavaojos|antiderrame|desfibrilador|collarin|inmovilizador/.test(name)) return 'emergency';
+      return 'equipment';
+    }
+
+    function equipmentIcon(value, inspectionName) {
+      let name = equipmentIconName(value);
+      if (name === 'equipment') name = equipmentIconName(inspectionName);
+      return `<span class="equipment-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" focusable="false">${EQUIPMENT_ICONS[name]}</svg></span>`;
+    }
+
+
     function renderTypes() {
       $('#typeList').innerHTML = state.tipos.map(item => {
         const typeCardClass = item.pendingThisMonth > 0 ? 'pending-card' : 'done-card';
         return `<button class="card ${typeCardClass}" type="button" data-id="${escapeHtml(item.inspeccion_id)}">
           <span class="card-title-row">
-            <span class="card-title">${escapeHtml(item.inspeccion)}</span>
+            <span class="card-title-group">${equipmentIcon(item.inspeccion)}<span class="card-title">${escapeHtml(item.inspeccion)}</span></span>
             <span class="badge ${item.pendingThisMonth > 0 ? 'pending' : 'done'}">${escapeHtml(item.pendingThisMonth)} pend.</span>
           </span>
           <span class="card-meta">${item.lastInspectionDate ? `Ultima inspeccion: ${escapeHtml(item.lastInspectionDate)}` : 'Sin inspecciones registradas'}</span>
@@ -1071,7 +1146,7 @@
 
         return `<div class="card ${done ? 'done-card' : 'pending-card'}">
           <span class="card-title-row">
-            <span class="card-title">${escapeHtml(item.etiqueta || item.codigo || item.ubicacion || 'Item')}</span>
+            <span class="card-title-group">${equipmentIcon(item.tipo_equipo, state.selectedType && state.selectedType.inspeccion)}<span class="card-title">${escapeHtml(item.etiqueta || item.codigo || item.ubicacion || 'Item')}</span></span>
             <span class="badge ${badgeClass}">${badgeText}</span>
           </span>
           <span class="card-meta">${meta}</span>
